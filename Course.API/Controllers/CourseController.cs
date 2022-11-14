@@ -7,6 +7,8 @@ using System.Collections.Generic;
 namespace CourseAPI.Controllers
 {
     [Route("api/[controller]")]
+    // Add XML format
+    [Produces("application/json", "application/xml", Type = typeof(List<string>))]
     [ApiController]
     public class CourseController : ControllerBase
     {
