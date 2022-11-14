@@ -1,6 +1,7 @@
 ﻿using CourseAPI.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
 
 namespace CourseAPI.Controllers
@@ -9,6 +10,8 @@ namespace CourseAPI.Controllers
     [ApiController]
     public class CourseController : ControllerBase
     {
+        #region CourseList
+
         private static List<Course> CourseList = new()
         {
             new Course()
@@ -36,12 +39,18 @@ namespace CourseAPI.Controllers
             },
         };
 
+        #endregion
+
+
         #region GetAll
 
         [HttpGet]
-        public IEnumerable<Course> GetAll()
+        public IActionResult GetAll()
         {
-            return CourseList;
+            // check if list isn't empty
+            if (CourseList.Count > 0)
+                return Ok(CourseList);
+            return NotFound("Pas d'éléments disponibles");
         }
 
         #endregion
@@ -49,9 +58,20 @@ namespace CourseAPI.Controllers
         #region Post
 
         [HttpPost]
-        public void Post([FromBody] Course course)
+        public IActionResult Post([FromBody] Course course)
         {
-            CourseList.Add(course);
+            int position = CourseList.FindIndex(p => p.Id == course.Id);
+
+            // Check if item id already exist
+            if (position != -1)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest, "Identifiant (id) manquant ou déjà existant");
+            }
+            else
+            {
+                CourseList.Add(course);
+                return Created("", "Élement créé avec succès");
+            }
         }
 
         #endregion
@@ -59,14 +79,18 @@ namespace CourseAPI.Controllers
         #region Delete
 
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
             int position = CourseList.FindIndex(p => p.Id == id);
 
             if (position != -1)
             {
-                CourseList.RemoveAt(id);
+                CourseList.RemoveAt(position);
+                return Ok("Élément supprimé avec succès");
             }
+            else
+                return NotFound("Élément introuvable");
+
         }
 
         #endregion
@@ -74,14 +98,24 @@ namespace CourseAPI.Controllers
         #region Put
 
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] Course course)
+        public IActionResult Put(int id, [FromBody] Course course)
         {
-            int position = CourseList.FindIndex(p => p.Id == id);
+            int currentPosition = CourseList.FindIndex(p => p.Id == id);
 
-            if (position != -1)
+            if (currentPosition != -1)
             {
-                CourseList[position] = course;
+                int newPosition = CourseList.FindIndex(p => p.Id == course.Id);
+
+                if (currentPosition != -1 && newPosition != -1)
+                {
+                    CourseList[currentPosition] = course;
+                    return Ok("Élément modifié avec succès");
+                }
+                else
+                    return StatusCode(StatusCodes.Status400BadRequest, "Modification impossible. Id déjà utilisé");
             }
+            else
+                return StatusCode(StatusCodes.Status404NotFound, "Élément introuvable");
         }
 
         #endregion
@@ -89,10 +123,18 @@ namespace CourseAPI.Controllers
         #region GetById
 
         [HttpGet("{id}")]
-        public Course GetById(int id)
+        public IActionResult GetById(int id)
         {
-            Course course = CourseList.Find(p => p.Id == id);
-            return course;
+            try
+            {
+                Course course = CourseList[id];
+                return Ok(course);
+            }
+            catch (Exception)
+            {
+                return NotFound("Élément introuvable");
+                throw;
+            }
         }
 
         #endregion
