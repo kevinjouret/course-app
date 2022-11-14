@@ -1,4 +1,5 @@
 ﻿using CourseAPI.Utils;
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace CourseAPI.Models
@@ -16,5 +17,8 @@ namespace CourseAPI.Models
         // I know Range() is better but it's just a CustomValidation's example
         [CustomValidationModel(10)]
         public int Rate { get; set; }
+
+        public IFormFile Image { get; set; }
+        public string ImageUrl { get; set; }
     }
 }

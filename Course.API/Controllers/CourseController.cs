@@ -1,4 +1,5 @@
 ﻿using CourseAPI.Models;
+using CourseAPI.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -60,8 +61,9 @@ namespace CourseAPI.Controllers
         #region Post
 
         [HttpPost]
-        public IActionResult Post([FromBody] Course course)
+        public IActionResult Post([FromForm] Course course)
         {
+            string filePath;
             int position = CourseList.FindIndex(p => p.Id == course.Id);
 
             // Check if item id already exist
@@ -71,6 +73,27 @@ namespace CourseAPI.Controllers
             }
             else
             {
+                // Check image extension
+                if (UploadFile.TestImage(course.Image))
+                {
+                    // Write file
+                    filePath = UploadFile.WriteFile(course.Image);
+
+                    if (filePath != string.Empty)
+                    {
+                        // Create image url
+                        course.ImageUrl = filePath;
+                    }
+                    else
+                    {
+                        return StatusCode(StatusCodes.Status400BadRequest, "Impossible de sauvegarder le fichier");
+                    }
+                }
+                else
+                {
+                    return StatusCode(StatusCodes.Status400BadRequest, "Type de fichier invalide ou non présent");
+                }
+
                 CourseList.Add(course);
                 return Created("", "Élement créé avec succès");
             }
@@ -100,8 +123,9 @@ namespace CourseAPI.Controllers
         #region Put
 
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] Course course)
+        public IActionResult Put(int id, [FromForm] Course course)
         {
+            string filePath;
             int currentPosition = CourseList.FindIndex(p => p.Id == id);
 
             if (currentPosition != -1)
@@ -110,6 +134,20 @@ namespace CourseAPI.Controllers
 
                 if (currentPosition != -1 && newPosition != -1)
                 {
+                    if (UploadFile.TestImage(course.Image))
+                    {
+                        filePath = UploadFile.WriteFile(course.Image);
+                        if (filePath != null)
+                            if (UploadFile.DeleteFile(CourseList[currentPosition].ImageUrl)) // Delete old image and write new image
+                                course.ImageUrl = filePath;
+                            else
+                                return StatusCode(StatusCodes.Status400BadRequest, "Impossible de supprimer le fichier");
+                        else
+                            return StatusCode(StatusCodes.Status400BadRequest, "Impossible de sauvegarder le fichier");
+                    }
+                    else
+                        return StatusCode(StatusCodes.Status400BadRequest, "Format de fichier invalide");
+
                     CourseList[currentPosition] = course;
                     return Ok("Élément modifié avec succès");
                 }

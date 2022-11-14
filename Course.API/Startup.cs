@@ -40,6 +40,8 @@ namespace CourseAPI
         {
             if (env.IsDevelopment())
             {
+                // Add static files (image)
+                app.UseStaticFiles();
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Course.API v1"));
