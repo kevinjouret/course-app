@@ -20,7 +20,7 @@ namespace CourseAPI.Controllers
         {
             new Course()
             {
-                Id = 0,
+                CourseId = 0,
                 Name = "Le JavaScript pour les nuls",
                 Description = "Apprendre le JavaScript depuis le début.",
                 Rate = 8
@@ -28,7 +28,7 @@ namespace CourseAPI.Controllers
 
             new Course()
             {
-                Id = 1,
+                CourseId = 1,
                 Name = "Le C# pour les nuls",
                 Description = "Apprendre le C# depuis le début.",
                 Rate = 9
@@ -36,7 +36,7 @@ namespace CourseAPI.Controllers
 
             new Course()
             {
-                Id = 2,
+                CourseId = 2,
                 Name = "HTML5 pour les nuls",
                 Description = "Apprendre HTML5 depuis le début.",
                 Rate = 7
@@ -105,7 +105,7 @@ namespace CourseAPI.Controllers
         [HttpGet("[action]/{id}")] // [HttpGet("GetCourseName/{id}")] >> Example of using action attribute
         public IActionResult GetCourseName(int id)
         {
-            var courseName = CourseList.Where(c => c.Id == id).Select(cn => cn.Name);
+            var courseName = CourseList.Where(c => c.CourseId == id).Select(cn => cn.Name);
             return Ok(courseName);
         }
 
@@ -117,7 +117,7 @@ namespace CourseAPI.Controllers
         [HttpGet]
         public IActionResult GetCourseDescription(int id)
         {
-            var courseDescription = CourseList.Where(c => c.Id == id).Select(cd => cd.Description);
+            var courseDescription = CourseList.Where(c => c.CourseId == id).Select(cd => cd.Description);
             return Ok(courseDescription);
         }
 
@@ -129,7 +129,7 @@ namespace CourseAPI.Controllers
         public IActionResult Post([FromForm] Course course)
         {
             string filePath;
-            int position = CourseList.FindIndex(p => p.Id == course.Id);
+            int position = CourseList.FindIndex(p => p.CourseId == course.CourseId);
 
             // Check if item id already exist
             if (position != -1)
@@ -171,7 +171,7 @@ namespace CourseAPI.Controllers
         [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
-            int position = CourseList.FindIndex(p => p.Id == id);
+            int position = CourseList.FindIndex(p => p.CourseId == id);
 
             if (position != -1)
             {
@@ -191,11 +191,11 @@ namespace CourseAPI.Controllers
         public IActionResult Put(int id, [FromForm] Course course)
         {
             string filePath;
-            int currentPosition = CourseList.FindIndex(p => p.Id == id);
+            int currentPosition = CourseList.FindIndex(p => p.CourseId == id);
 
             if (currentPosition != -1)
             {
-                int newPosition = CourseList.FindIndex(p => p.Id == course.Id);
+                int newPosition = CourseList.FindIndex(p => p.CourseId == course.CourseId);
 
                 if (currentPosition != -1 && newPosition != -1)
                 {

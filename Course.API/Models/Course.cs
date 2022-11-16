@@ -1,5 +1,6 @@
 ﻿using CourseAPI.Utils;
 using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -7,7 +8,7 @@ namespace CourseAPI.Models
 {
     public class Course
     {
-        public int Id { get; set; }
+        public int CourseId { get; set; }
 
         [Required (ErrorMessage = "Le nom est obligatoire")]
         public string Name { get; set; }
@@ -24,5 +25,8 @@ namespace CourseAPI.Models
         [NotMapped]
         public IFormFile Image { get; set; }
         public string ImageUrl { get; set; }
+
+        public ICollection<Purchase> Purchases { get; set; }
+        public ICollection<CourseLanguage> CourseLanguages { get; set; } // NN
     }
 }
