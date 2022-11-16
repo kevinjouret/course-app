@@ -1,6 +1,7 @@
 ﻿using CourseAPI.Utils;
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CourseAPI.Models
 {
@@ -18,6 +19,9 @@ namespace CourseAPI.Models
         [CustomValidationModel(10)]
         public int Rate { get; set; }
 
+        public float Price { get; set; }
+
+        [NotMapped]
         public IFormFile Image { get; set; }
         public string ImageUrl { get; set; }
     }
