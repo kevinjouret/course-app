@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CourseAPI.Controllers
 {
@@ -54,6 +55,70 @@ namespace CourseAPI.Controllers
             if (CourseList.Count > 0)
                 return Ok(CourseList);
             return NotFound("Pas d'éléments disponibles");
+        }
+
+        #endregion
+
+        #region GetById
+
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
+        {
+            try
+            {
+                Course course = CourseList[id];
+                return Ok(course);
+            }
+            catch (Exception)
+            {
+                return NotFound("Élément introuvable");
+                throw;
+            }
+        }
+
+        #endregion
+
+        #region GetCoursesByRate
+
+        [HttpGet("[action]")] // [HttpGet("GetCoursesByRate")] >> Example of using action attribute
+        public IActionResult GetCoursesByRate()
+        {
+            var courseList = CourseList.OrderBy(c => c.Rate);
+            return Ok(courseList);
+        }
+
+        #endregion
+
+        #region GetBestCourse
+
+        [HttpGet("[action]")] // [HttpGet("GetBestCourse")] >> Example of using action attribute
+        public IActionResult GetBestCourse()
+        {
+            var bestCourse = CourseList.OrderBy(c => c.Rate).FirstOrDefault();
+            return Ok(bestCourse);
+        }
+
+        #endregion
+
+        #region GetCourseName
+
+        [HttpGet("[action]/{id}")] // [HttpGet("GetCourseName/{id}")] >> Example of using action attribute
+        public IActionResult GetCourseName(int id)
+        {
+            var courseName = CourseList.Where(c => c.Id == id).Select(cn => cn.Name);
+            return Ok(courseName);
+        }
+
+        #endregion
+
+        #region GetCourseDescription
+
+        [Route("[action]/{id}")] // [HttpGet("GetCourseDescription/{id}")] >> Example of using action attribute
+        [HttpGet]
+        public IActionResult GetCourseDescription(int id)
+        {
+            var courseDescription = CourseList.Where(c => c.Id == id).Select(cd => cd.Description);
+            return Ok(courseDescription);
         }
 
         #endregion
@@ -156,25 +221,6 @@ namespace CourseAPI.Controllers
             }
             else
                 return StatusCode(StatusCodes.Status404NotFound, "Élément introuvable");
-        }
-
-        #endregion
-
-        #region GetById
-
-        [HttpGet("{id}")]
-        public IActionResult GetById(int id)
-        {
-            try
-            {
-                Course course = CourseList[id];
-                return Ok(course);
-            }
-            catch (Exception)
-            {
-                return NotFound("Élément introuvable");
-                throw;
-            }
         }
 
         #endregion
