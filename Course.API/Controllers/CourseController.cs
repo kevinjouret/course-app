@@ -125,44 +125,36 @@ namespace CourseAPI.Controllers
 
         #region Post
 
-        [HttpPost]
-        public IActionResult Post([FromForm] Course course)
-        {
-            string filePath;
-            int position = CourseList.FindIndex(p => p.CourseId == course.CourseId);
+        //[HttpPost]
+        //public IActionResult Post([FromForm] Course course)
+        //{
+        //    string filePath;
+        //    int position = CourseList.FindIndex(p => p.CourseId == course.CourseId);
 
-            // Check if item id already exist
-            if (position != -1)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest, "Identifiant (id) manquant ou déjà existant");
-            }
-            else
-            {
-                // Check image extension
-                if (UploadFile.TestImage(course.Image))
-                {
-                    // Write file
-                    filePath = UploadFile.WriteFile(course.Image);
+        //    // Check if item id already exist
+        //    if (position != -1)
+        //    {
+        //        return StatusCode(StatusCodes.Status400BadRequest, "Identifiant (id) manquant ou déjà existant");
+        //    }
+        //    else
+        //    {
+        //        // Check image extension
+        //        if (UploadFile.TestImage(course.Image))
+        //        {                   
+        //            filePath = UploadFile.WriteFile(course.Image); // Write file
 
-                    if (filePath != string.Empty)
-                    {
-                        // Create image url
-                        course.ImageUrl = filePath;
-                    }
-                    else
-                    {
-                        return StatusCode(StatusCodes.Status400BadRequest, "Impossible de sauvegarder le fichier");
-                    }
-                }
-                else
-                {
-                    return StatusCode(StatusCodes.Status400BadRequest, "Type de fichier invalide ou non présent");
-                }
+        //            if (filePath != string.Empty)                        
+        //                course.ImageUrl = filePath; // Create image url
+        //            else
+        //                return StatusCode(StatusCodes.Status400BadRequest, "Impossible de sauvegarder le fichier");
+        //        }
+        //        else
+        //            return StatusCode(StatusCodes.Status400BadRequest, "Type de fichier invalide ou non présent");
 
-                CourseList.Add(course);
-                return Created("", "Élement créé avec succès");
-            }
-        }
+        //        CourseList.Add(course);
+        //        return Created("", "Élement créé avec succès");
+        //    }
+        //}
 
         #endregion
 
@@ -187,41 +179,41 @@ namespace CourseAPI.Controllers
 
         #region Put
 
-        [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromForm] Course course)
-        {
-            string filePath;
-            int currentPosition = CourseList.FindIndex(p => p.CourseId == id);
+        //[HttpPut("{id}")]
+        //public IActionResult Put(int id, [FromForm] Course course)
+        //{
+        //    string filePath;
+        //    int currentPosition = CourseList.FindIndex(p => p.CourseId == id);
 
-            if (currentPosition != -1)
-            {
-                int newPosition = CourseList.FindIndex(p => p.CourseId == course.CourseId);
+        //    if (currentPosition != -1)
+        //    {
+        //        int newPosition = CourseList.FindIndex(p => p.CourseId == course.CourseId);
 
-                if (currentPosition != -1 && newPosition != -1)
-                {
-                    if (UploadFile.TestImage(course.Image))
-                    {
-                        filePath = UploadFile.WriteFile(course.Image);
-                        if (filePath != null)
-                            if (UploadFile.DeleteFile(CourseList[currentPosition].ImageUrl)) // Delete old image and write new image
-                                course.ImageUrl = filePath;
-                            else
-                                return StatusCode(StatusCodes.Status400BadRequest, "Impossible de supprimer le fichier");
-                        else
-                            return StatusCode(StatusCodes.Status400BadRequest, "Impossible de sauvegarder le fichier");
-                    }
-                    else
-                        return StatusCode(StatusCodes.Status400BadRequest, "Format de fichier invalide");
+        //        if (currentPosition != -1 && newPosition != -1)
+        //        {
+        //            if (UploadFile.TestImage(course.Image))
+        //            {
+        //                filePath = UploadFile.WriteFile(course.Image);
+        //                if (filePath != null)
+        //                    if (UploadFile.DeleteFile(CourseList[currentPosition].ImageUrl)) // Delete old image and write new image
+        //                        course.ImageUrl = filePath;
+        //                    else
+        //                        return StatusCode(StatusCodes.Status400BadRequest, "Impossible de supprimer le fichier");
+        //                else
+        //                    return StatusCode(StatusCodes.Status400BadRequest, "Impossible de sauvegarder le fichier");
+        //            }
+        //            else
+        //                return StatusCode(StatusCodes.Status400BadRequest, "Format de fichier invalide");
 
-                    CourseList[currentPosition] = course;
-                    return Ok("Élément modifié avec succès");
-                }
-                else
-                    return StatusCode(StatusCodes.Status400BadRequest, "Modification impossible. Id déjà utilisé");
-            }
-            else
-                return StatusCode(StatusCodes.Status404NotFound, "Élément introuvable");
-        }
+        //            CourseList[currentPosition] = course;
+        //            return Ok("Élément modifié avec succès");
+        //        }
+        //        else
+        //            return StatusCode(StatusCodes.Status400BadRequest, "Modification impossible. Id déjà utilisé");
+        //    }
+        //    else
+        //        return StatusCode(StatusCodes.Status404NotFound, "Élément introuvable");
+        //}
 
         #endregion
     }

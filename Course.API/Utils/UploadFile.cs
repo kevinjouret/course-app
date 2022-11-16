@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace CourseAPI.Utils
 {
@@ -18,7 +19,7 @@ namespace CourseAPI.Utils
             return false;
         }
 
-        public static string WriteFile(IFormFile file)
+        public static async Task<string> WriteFile(IFormFile file)
         {
             string fileUrl = string.Empty;
 
@@ -32,7 +33,7 @@ namespace CourseAPI.Utils
                 // Create file
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    file.CopyTo(stream);
+                    await file.CopyToAsync(stream);
                 }
                 fileUrl = filePath;
             }
