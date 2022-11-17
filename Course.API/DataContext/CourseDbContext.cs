@@ -16,6 +16,7 @@ namespace CourseAPI.DataContext
         public DbSet<Address> Address { get; set; }
         public DbSet<Purchase> Purchase { get; set; }
         public DbSet<Language> Language { get; set; }
+        public DbSet<CourseLanguage> CourseLanguage { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
