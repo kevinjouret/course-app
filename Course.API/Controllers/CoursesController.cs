@@ -10,6 +10,13 @@ using CourseAPI.Models;
 using CourseAPI.Utils;
 using System.ComponentModel;
 using Microsoft.AspNetCore.Components.Forms;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Text;
+using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authorization;
+using BCrypt.Net;
 
 namespace CourseAPI.Controllers
 {
@@ -18,15 +25,18 @@ namespace CourseAPI.Controllers
     public class CoursesController : ControllerBase
     {
         private readonly CourseDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public CoursesController(CourseDbContext context)
+        public CoursesController(CourseDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         #region GetCourses
 
         // GET: api/Courses
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Course>>> GetCourse()
         {
@@ -42,6 +52,7 @@ namespace CourseAPI.Controllers
         #region GetCourseById
 
         // GET: api/Courses/5
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<ActionResult<Course>> GetCourse(int id)
         {
@@ -313,6 +324,7 @@ namespace CourseAPI.Controllers
 
         #region GetCourse (Search)
 
+        [Authorize(Roles = "Administrateur")]
         [HttpGet("[action]")]
         public async Task<ActionResult<IEnumerable<Course>>> Search(string keyword)
         {
@@ -330,12 +342,134 @@ namespace CourseAPI.Controllers
                               c.Price,
                               Language = l.Name
                           };
-                
+
                 return Ok(res);
 
             }
             else
                 return BadRequest("La champ de recherche doit contenir au moins 2 charactères");
+        }
+
+        #endregion
+
+        // ------------------------------------------------------------
+
+        #region Login
+
+        [HttpPost("[action]")]
+        public async Task<IActionResult> Login([FromBody] User user)
+        {
+            bool checkPassword;
+            var _user = await _context.User.FirstOrDefaultAsync(u => u.Email == user.Email);
+
+            if (_user == null)
+                return NotFound();
+
+            try
+            {
+                checkPassword = BCrypt.Net.BCrypt.Verify(user.Password, _user.Password);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+
+            }
+
+
+            if (!checkPassword)
+                return Unauthorized();
+            else
+            {
+                // Create Claims if user is authorized
+                var claims = new[]
+                {
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim(ClaimTypes.Role, _user.Role),
+                    new Claim("UserId", _user.UserId.ToString()),
+                    new Claim(ClaimTypes.Name, (_user.Lastname + " " + _user.Firstname))
+                };
+
+                var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));
+
+                var token = new JwtSecurityToken(
+                issuer: _configuration["JWT:ValidIssuer"],
+                audience: _configuration["JWT:ValidAudience"],
+                expires: DateTime.Now.AddSeconds(Convert.ToInt32(Convert.ToInt32(_configuration["JWT:TimeBeforeExpirationSeconds"]))),
+                claims: claims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+                );
+
+                return Ok(new
+                {
+                    token = new JwtSecurityTokenHandler().WriteToken(token),
+                    expiration = token.ValidTo
+                });
+            }
+        }
+
+        #endregion
+
+        #region Register
+
+        [HttpPost("[action]")]
+        public async Task<IActionResult> Register([FromBody] User user)
+        {
+            var mailCheck = await _context.User.FirstOrDefaultAsync(u => u.Email == user.Email);
+            if (mailCheck != null)
+                return BadRequest("Adresse email déjà existante");
+            if (user.Address == null)
+                return BadRequest("Adresse incomplete");
+
+            var newAddress = new Address
+            {
+                Street = user.Address.Street,
+                Zipcode = user.Address.Zipcode,
+                City = user.Address.City,
+            };
+
+            var newUser = new User
+            {
+                Firstname = user.Firstname,
+                Lastname = user.Lastname,
+                Email = user.Email,
+                Password = BCrypt.Net.BCrypt.HashPassword(user.Password),
+                Role = "Utilisateur",
+                Address = newAddress
+            };
+
+            try
+            {
+                _context.User.Add(newUser);
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+        }
+
+        #endregion
+
+        #region GetClaims
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetClaims()
+        {
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+
+            if (identity.Claims.Any())
+            {
+                IEnumerable<Claim> claims = identity.Claims;
+
+                    //Name = identity.FindFirst(i => i.Type == ClaimTypes.Name).Value
+                    //Role = identity.FindFirst(i => i.Type == ClaimTypes.Role).Value
+                    //Email = identity.FindFirst(i => i.Type == ClaimTypes.Email).Value
+
+                return Ok(identity.FindFirst(i => i.Type == "UserId".ToString()).Value);
+            }
+            else
+                return NotFound();
         }
 
         #endregion
