@@ -13,7 +13,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -33,8 +35,11 @@ namespace CourseAPI
         public void ConfigureServices(IServiceCollection services)
         {
             // Disable recursive cycle error
-            services.AddControllers().AddJsonOptions(o => 
-            o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
+            //services.AddControllers().AddJsonOptions(o => 
+            //o.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve);
+
+            //services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore);
+
 
             // Add XML format
             services.AddMvc().AddXmlSerializerFormatters();
@@ -69,11 +74,48 @@ namespace CourseAPI
                     ClockSkew = TimeSpan.Zero //pas de tolérance pour la date d’expiration
                 };
             });
+
+
             services.AddControllers();
             services.AddDbContext<CourseDbContext>(op => op.UseSqlServer(Configuration.GetConnectionString("CourseAPIDbContext")));
+
+
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Course.API", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Cours API",
+                    Version = "v1",
+
+                    Description = "An API to perform Cours operations",
+                    TermsOfService = new Uri("https://exemple.coursapi.fr/terms"),
+                    Contact = new OpenApiContact
+                    {
+                        Name = "Sylvain Aymard",
+                        Email = "sylvain.aymard@test.fr",
+                        Url = new Uri("https://www.linkedin.com/in/sylvain-aymard/"),
+                    },
+                    License = new OpenApiLicense
+                    {
+                        Name = "Employee API LICX",
+                        Url = new Uri("https://exemple.coursapi.fr/license"),
+                    }
+                });
+
+                // defini le chemin des commentaires pour l'interface du swagger.
+                //var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                //var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                //c.IncludeXmlComments(xmlPath);
+
+                /*
+                 AddSecurityDefinition – Cette méthode vous permet de définir comment votre API est sécurisée en définissant un ou plusieurs schémas de sécurité. ‎
+                La méthode AddSecurityDefinition vous permet d’activer les schémas d’authentification ci-dessous. (On peut également utiliser plusieurs schémas de sécurité si nécessaire)‎
+
+                - Authentification de base à l’aide de BasicAuthScheme,
+                - Jeton de porteur JWT à l’aide de ApiKeyScheme
+                - Authentification OAuth2 à l’aide d’OAuth2Scheme
+                */
+
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
                 {
                     Name = "Authorization",
@@ -83,6 +125,9 @@ namespace CourseAPI
                     In = ParameterLocation.Header,
                     Description = "Enter 'Bearer' [space] and then your valid token in the text input below.\r\n\r\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\"",
                 });
+
+                //La méthode AddSecurityRequirement permet de contrôler le schéma d’authentification
+
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
                     {
@@ -97,8 +142,11 @@ namespace CourseAPI
                             new string[] {}
                     }
                 });
+
             });
         }
+
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

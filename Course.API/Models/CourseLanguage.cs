@@ -2,7 +2,9 @@
 {
     public class CourseLanguage
     {
-        public virtual int CourseId { get; set; }
-        public virtual int LanguageId { get; set; }
+        public int CourseId { get; set; }
+        public Course Course { get; set; }
+        public int LanguageId { get; set; }
+        public Language Language { get; set; }
     }
 }
